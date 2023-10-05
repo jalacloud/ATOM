@@ -1,0 +1,68 @@
+---
+- name: Automated Threat Modelling Workflow
+  hosts: localhost
+  gather_facts: no
+  vars:
+    # Get a key from https://platform.openai.com/account/api-keys
+    # For openai models check: https://platform.openai.com/account/rate-limits
+    api_key: "YOUR_CHATGPT_API_KEY_HERE"
+    prompt_file: "templates/prompt-atom-instructions.txt"
+    project_md_file: "inputs/project.md"
+    architecture_md_file: "inputs/architecture.md"
+    output_dir: "outputs"
+    temperature: 0.2  # Default temperature
+    verbosity: "high"  # Default verbosity
+
+  tasks:
+    - name: Read ChatGPT prompt from .txt file
+      slurp:
+        src: "{{ prompt_file }}"
+      register: prompt_content
+
+    - name: Generate threat model from project.md
+      uri:
+        url: "https://api.openai.com/v1/engines/text-davinci-002/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+        body_format: json
+        body:
+          prompt: "{{ prompt_content.content | b64decode }}"
+          max_tokens: 200  # Adjust as needed
+          temperature: "{{ temperature }}"
+          verbosity: "{{ verbosity }}"
+      register: project_security_response
+
+    - name: Write project threat model to file
+      ansible.builtin.copy:
+        content: "{{ project_security_response.json.choices[0].text }}"
+        dest: "{{ output_dir }}/Project_SECURITY.md"
+
+    - name: Generate threat model from architecture.md
+      uri:
+        url: "https://api.openai.com/v1/engines/text-davinci-002/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+        body_format: json
+        body:
+          prompt: "{{ lookup('file', architecture_md_file) }}"
+          max_tokens: 200  # Adjust as needed
+          temperature: "{{ temperature }}"
+          verbosity: "{{ verbosity }}"
+      register: architecture_security_response
+
+    - name: Write architecture threat model to file
+      ansible.builtin.copy:
+        content: "{{ architecture_security_response.json.choices[0].text }}"
+        dest: "{{ output_dir }}/Architecture_SECURITY.md"
+
+    - name: Indicate playbook success
+      ansible.builtin.debug:
+        msg: "Playbook completed successfully."
+
+  post_tasks:
+    - name: Check if playbook was successful
+      ansible.builtin.fail:
+        msg: "Playbook failed."
+      when: project_security_response.failed or architecture_security_response.failed
