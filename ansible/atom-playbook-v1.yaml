@@ -27,7 +27,7 @@
           Authorization: "Bearer {{ api_key }}"
         body_format: json
         body:
-          prompt: "{{ prompt_content.content | b64decode }}"
+          prompt: "{{ lookup('file', project_md_file) }}"
           max_tokens: 200  # Adjust as needed
           temperature: "{{ temperature }}"
           verbosity: "{{ verbosity }}"
