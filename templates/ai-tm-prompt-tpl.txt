@@ -1,0 +1,10 @@
+# This is a template file for providing instructions to ChatGPT for automated threat modelling.
+
+Instructions:
+...
+- I will provide you Assumptions that you need to consider in listing threats
+- Provide an explanation for whether or not this threat is already mitigated in the architecture
+
+Assumptions:
+- SQL Injection threat is already mitigated using SAST tool
+...
