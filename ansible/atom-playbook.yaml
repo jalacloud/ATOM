@@ -1,0 +1,26 @@
+---
+- name: Automated Threat Modelling Workflow
+  hosts: localhost
+  gather_facts: no
+  vars:
+    api_endpoint: "https://api.openai.com"
+    engine_version: "/v1/engines/text-davinci-002/completions"
+    files_to_process:
+      - project
+      - architecture
+    output_dir: "outputs"
+    temperature: 0.2  
+    verbosity: "high"  
+
+  tasks:
+    - name: Generate and Write Threat Model
+      include_tasks: threat_modelling.yml
+      loop: "{{ files_to_process }}"
+      loop_control:
+        loop_var: file_to_process
+
+  post_tasks:
+    - name: Check if playbook was successful
+      ansible.builtin.fail:
+        msg: "Playbook failed."
+      when: project_security_response.failed or architecture_security_response.failed

@@ -1,0 +1,41 @@
+---
+- name: Read {{ file_to_process }}_prompt.txt and generate threat model
+  block:
+    - name: Read the prompt file
+      ansible.builtin.slurp:
+        src: "prompts/{{ file_to_process }}_prompt.txt"
+      register: prompt_content
+      ignore_errors: true  # Ignore error if prompt file is not found
+
+    - name: Generate threat model
+      uri:
+        url: "{{ api_endpoint }}{{ engine_version }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ lookup('env', 'OPENAI_API_KEY') }}"
+        body_format: json
+        body:
+          prompt: "{{ (prompt_content['content'] | b64decode | string) + lookup('file', 'inputs/' + file_to_process + '.md') }}"
+          max_tokens: 200  
+          temperature: "{{ temperature }}"
+          verbosity: "{{ verbosity }}"
+      register: security_response
+      when: prompt_content is defined and not prompt_content.failed
+
+    - name: Handle API Errors
+      block:
+        - name: Fail gracefully on API error
+          ansible.builtin.fail:
+            msg: "API request failed with status {{ security_response.status }}: {{ security_response.json.error.message }}"
+      when: security_response.failed or (security_response.json.error is defined)
+  rescue:
+    - name: Handle prompt read error
+      ansible.builtin.fail:
+        msg: "Failed to read prompt file. Please ensure the file exists and is accessible."
+      when: prompt_content.failed
+
+- name: Write {{ file_to_process }} threat model to file
+  ansible.builtin.copy:
+    content: "{{ security_response.json.choices[0].text }}"
+    dest: "{{ output_dir }}/{{ file_to_process | upper }}_SECURITY.md"
+
