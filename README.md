@@ -1,32 +1,26 @@
-# Assets, Techniques, Objectives & Mitigations (ATOM)
-An advanced asset-centric threat model.
+# Actors, Techniques, Objectives & Mitigations (ATOM)
+An AI-driven threat-centric framework for modern adversarial threat modelling.
 
-ASSETS
-  - AssetID
-  - Asset
-  - Presentation
+ACTORS
+  - id
+  - name
+  - associated_groups
 
 TECHNIQUES
-  - AssetID
-  - Attack Surface
-  - Technique
-  - Description
-  - Existing Controls
+  - id
+  - name
+  - description
 
-OBJECTIVES
-  - AssetID
-  - Technique
-  - Attack Objective
-  - Threat Source (NIST 800-30r1)
-  - Sequence of Attack (MITRE ATT&CK)
+OBJECTIVES // TACTICS
+  - id
+  - name
+  - description
 
 MITIGATIONS
-  - AssetID
-  - Attack Surface (Credible)
-  - Technique
-  - Threat Source
-  - Mitigation
-  - NIST 800-53r4 Control
+  - id
+  - name
+  - description
+  - techniques_addressed
 
 ---
 
